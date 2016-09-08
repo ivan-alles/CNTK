@@ -25,20 +25,19 @@ trainNetwork = {
         Scale{f} = x => Constant(f) .* x
 
         # define a custom layer with 5x5 convolution, batch norm, relu and 2x2 max pooling
-        ConvBnReluPoolLayer {depth, initValueScale} = x =>
-        {
-            c = ConvolutionalLayer      {depth, (5:5), pad=true, initValueScale=initValueScale} (x)
-            b = BatchNormalizationLayer {spatialRank = 2, normalizationTimeConstant = 1024} (c)
-            r = ReLU (b)
-            p = MaxPoolingLayer         {(2:2), stride = (2:2)} (r)
-        }.p
+        ConvBnReluPoolLayer {outChannels, initValueScale} = Sequential (
+            ConvolutionalLayer      {outChannels, (5:5), pad=true, initValueScale=initValueScale} :
+            BatchNormalizationLayer {spatialRank = 2} :
+            ReLU :
+            MaxPoolingLayer         {(2:2), stride = (2:2)} 
+        )
         
         model = Sequential (
             Scale {featScale} :
             ConvBnReluPoolLayer     {16, convWScale} :
             ConvBnReluPoolLayer     {32, convWScale} :
             LinearLayer             {128} :
-            BatchNormalizationLayer {normalizationTimeConstant = 1024} :
+            BatchNormalizationLayer {} :
             ReLU :
             LinearLayer             {labelDim}
         )
